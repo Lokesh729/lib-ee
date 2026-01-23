@@ -29,7 +29,8 @@ const studentSchema = new mongoose.Schema({
 });
 
 // Index for faster enrollment number lookups
-studentSchema.index({ enrollmentNumber: 1 });
+// Index for faster enrollment number lookups - REMOVED due to conflict with unique: true
+// studentSchema.index({ enrollmentNumber: 1 });
 
 const Student = mongoose.model('Student', studentSchema);
 

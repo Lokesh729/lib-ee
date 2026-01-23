@@ -13,6 +13,10 @@ export default function Dashboard() {
         return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     };
 
+    const formatDate = (timestamp) => {
+        return new Date(timestamp).toLocaleDateString([], { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+
     const toRoman = (num) => {
         if (!num) return '';
         const romanNumerals = [
@@ -52,6 +56,30 @@ export default function Dashboard() {
         } catch (err) {
             console.error('Failed to clear logs', err);
             alert('Failed to clear logs. Please try again.');
+        }
+    };
+
+    const handleDownloadCSV = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://localhost:5000/api/library/export', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                responseType: 'blob', // Important
+            });
+
+            // Create blob link to download
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'library_logs.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+        } catch (err) {
+            console.error('Failed to download CSV', err);
+            alert('Failed to download CSV');
         }
     };
 
@@ -102,6 +130,15 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold text-gray-800">Live Library Monitor</h2>
                 <div className="flex items-center gap-4">
                     <button
+                        onClick={handleDownloadCSV}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm flex items-center gap-2"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download CSV
+                    </button>
+                    <button
                         onClick={handleClearLogs}
                         className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium text-sm"
                     >
@@ -120,6 +157,7 @@ export default function Dashboard() {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Date</th>
                             <th className="py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Time</th>
                             <th className="py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Student Name</th>
                             <th className="py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Enrollment</th>
@@ -131,15 +169,18 @@ export default function Dashboard() {
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="text-center py-8 text-gray-500">Connecting to server...</td>
+                                <td colSpan="7" className="text-center py-8 text-gray-500">Connecting to server...</td>
                             </tr>
                         ) : logs.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="text-center py-8 text-gray-500">No recent activity.</td>
+                                <td colSpan="7" className="text-center py-8 text-gray-500">No recent activity.</td>
                             </tr>
                         ) : (
                             logs.map((log) => (
                                 <tr key={log._id || Math.random()} className="hover:bg-gray-50 transition-colors animate-fade-in-down">
+                                    <td className="py-4 px-6 text-gray-700 font-mono text-sm">
+                                        {formatDate(log.timestamp)}
+                                    </td>
                                     <td className="py-4 px-6 text-gray-700 font-mono text-sm">
                                         {formatTime(log.timestamp)}
                                     </td>
