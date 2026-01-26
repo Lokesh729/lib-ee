@@ -3,7 +3,9 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://10.164.60.99:5000/api/scan';
+import { BASE_URL } from './api';
+
+const API_URL = `${BASE_URL}/api/scan`;
 
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
